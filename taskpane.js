@@ -1,4 +1,4 @@
-// taskpane.js — Jira Sidebar Outlook Desktop Add-in (v30)
+// taskpane.js — Jira Sidebar Outlook Desktop Add-in (v31)
 // Uses Office.js mailbox API to extract ticket ID from email,
 // then calls jira.vonage.com directly (credentials:include) with
 // proxy fallback — same auth strategy as the Chrome extension.
