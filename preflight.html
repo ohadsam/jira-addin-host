@@ -29,7 +29,7 @@
 <button onclick="runChecks()">Run Checks</button>
 
 <script>
-const BASE = 'https://vigilant-adventure-4qw5ple.pages.github.io/jira-sidebar';
+const BASE = 'https://ohadsam.github.io/jira-addin-host';
 const FILES = [
   { file: 'taskpane.html',  label: 'Task pane UI' },
   { file: 'taskpane.js',    label: 'Task pane logic' },
@@ -78,7 +78,7 @@ async function runChecks() {
   } else {
     const missing = FILES.filter((_, i) => results[i] === 'fail').map(f => f.file).join(', ');
     resultEl.className = 'result-fail';
-    resultEl.innerHTML = `❌ <strong>Missing files: ${missing}</strong><br>Push the missing files to your <code>jira-sidebar/</code> folder on GitHub and wait ~60 seconds for GitHub Pages to deploy, then run checks again.`;
+    resultEl.innerHTML = `❌ <strong>Missing files: ${missing}</strong><br>Push the missing files to the <strong>root</strong> of the <code>ohadsam/jira-addin-host</code> repo on GitHub and wait ~60 seconds for Pages to deploy, then run checks again.`;
   }
 }
 
