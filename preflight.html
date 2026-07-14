@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Jira Sidebar — Pre-flight Check</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; color: #172b4d; }
+  h1 { color: #0052cc; font-size: 20px; }
+  .check { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #eee; }
+  .icon { font-size: 20px; width: 28px; text-align: center; }
+  .label { flex: 1; font-size: 14px; }
+  .status { font-size: 12px; font-weight: 600; }
+  .ok { color: #00875a; }
+  .fail { color: #de350b; }
+  .pending { color: #6b778c; }
+  #result { margin-top: 24px; padding: 16px; border-radius: 6px; font-size: 14px; }
+  .result-ok { background: #e3fcef; color: #006644; }
+  .result-fail { background: #ffebe6; color: #bf2600; }
+  button { margin-top: 20px; background: #0052cc; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 14px; }
+  button:hover { background: #0065ff; }
+</style>
+</head>
+<body>
+<h1>Jira Sidebar — Pre-flight Check</h1>
+<p style="color:#6b778c;font-size:13px;margin-bottom:20px">Verifies all required files are live on GitHub Pages before you install the Outlook add-in.</p>
+
+<div id="checks"></div>
+<div id="result"></div>
+<button onclick="runChecks()">Run Checks</button>
+
+<script>
+const BASE = 'https://vigilant-adventure-4qw5ple.pages.github.io/jira-sidebar';
+const FILES = [
+  { file: 'taskpane.html',  label: 'Task pane UI' },
+  { file: 'taskpane.js',    label: 'Task pane logic' },
+  { file: 'commands.html',  label: 'Commands stub' },
+  { file: 'icon16.png',     label: 'Icon 16×16' },
+  { file: 'icon48.png',     label: 'Icon 48×48' },
+  { file: 'icon128.png',    label: 'Icon 128×128' },
+];
+
+function renderChecks(statuses) {
+  const el = document.getElementById('checks');
+  el.innerHTML = FILES.map((f, i) => {
+    const s = statuses[i];
+    const icon = s === 'ok' ? '✅' : s === 'fail' ? '❌' : '⏳';
+    const cls  = s === 'ok' ? 'ok' : s === 'fail' ? 'fail' : 'pending';
+    const txt  = s === 'ok' ? 'OK' : s === 'fail' ? 'NOT FOUND' : 'Checking…';
+    return `<div class="check">
+      <span class="icon">${icon}</span>
+      <span class="label"><code>${BASE}/${f.file}</code><br><small>${f.label}</small></span>
+      <span class="status ${cls}">${txt}</span>
+    </div>`;
+  }).join('');
+}
+
+async function checkFile(url) {
+  try {
+    const r = await fetch(url, { method: 'HEAD', cache: 'no-store' });
+    return r.ok ? 'ok' : 'fail';
+  } catch { return 'fail'; }
+}
+
+async function runChecks() {
+  const statuses = FILES.map(() => 'pending');
+  renderChecks(statuses);
+  document.getElementById('result').innerHTML = '';
+
+  const results = await Promise.all(FILES.map((f, i) =>
+    checkFile(`${BASE}/${f.file}`).then(s => { statuses[i] = s; renderChecks([...statuses]); return s; })
+  ));
+
+  const allOk = results.every(s => s === 'ok');
+  const resultEl = document.getElementById('result');
+  if (allOk) {
+    resultEl.className = 'result-ok';
+    resultEl.innerHTML = '✅ <strong>All files are live.</strong> You can now install the add-in from <a href="https://aka.ms/olksideload" target="_blank">aka.ms/olksideload</a>.';
+  } else {
+    const missing = FILES.filter((_, i) => results[i] === 'fail').map(f => f.file).join(', ');
+    resultEl.className = 'result-fail';
+    resultEl.innerHTML = `❌ <strong>Missing files: ${missing}</strong><br>Push the missing files to your <code>jira-sidebar/</code> folder on GitHub and wait ~60 seconds for GitHub Pages to deploy, then run checks again.`;
+  }
+}
+
+// Auto-run on page load
+window.addEventListener('load', runChecks);
+</script>
+</body>
+</html>

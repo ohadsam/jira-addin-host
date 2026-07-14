@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<title>Jira Sidebar</title>
+<!-- Office.js — required for Outlook Add-in APIs -->
+<script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js" type="text/javascript"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  width: 100%; min-height: 300px; max-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #fff; color: #172b4d;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+
+/* ── Header ─────────────────────────────── */
+#header {
+  background: #0052cc; color: #fff;
+  padding: 10px 14px; display: flex; align-items: center; gap: 8px;
+  flex-shrink: 0;
+}
+#header-icon { font-size: 18px; }
+#header-title { font-size: 14px; font-weight: 700; flex: 1; }
+#header-version { font-size: 10px; opacity: .65; }
+
+/* ── Status bar ─────────────────────────── */
+#status-bar {
+  padding: 5px 12px; font-size: 11.5px; font-weight: 600;
+  display: flex; align-items: center; gap: 7px; min-height: 28px;
+  flex-shrink: 0;
+}
+#status-bar.st-idle    { background: #f4f5f7; color: #555; }
+#status-bar.st-loading { background: #e3f2fd; color: #1565c0; }
+#status-bar.st-success { background: #e8f5e9; color: #2e7d32; }
+#status-bar.st-error   { background: #ffebee; color: #c62828; }
+#status-bar.st-warn    { background: #fff8e1; color: #e65100; }
+#status-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.st-idle    #status-dot { background: #90a4ae; }
+.st-loading #status-dot { background: #1976d2; animation: pulse 1s infinite; }
+.st-success #status-dot { background: #43a047; }
+.st-error   #status-dot { background: #e53935; }
+.st-warn    #status-dot { background: #fb8c00; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* ── Input row ──────────────────────────── */
+#input-row {
+  display: flex; gap: 6px; padding: 8px 10px;
+  border-bottom: 1px solid #eee; background: #fafafa;
+  flex-shrink: 0;
+}
+#key-input {
+  flex: 1; padding: 6px 10px; border: 1px solid #ccc; border-radius: 6px;
+  font-size: 12px; font-family: 'Courier New', monospace;
+  text-transform: uppercase; outline: none;
+}
+#key-input:focus { border-color: #0052cc; }
+#go-btn {
+  padding: 6px 13px; background: #0052cc; color: #fff; border: none;
+  border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer;
+}
+#go-btn:hover { background: #0043a8; }
+
+/* ── Result area ────────────────────────── */
+#result { padding: 10px 12px; flex: 1; min-height: 0; overflow-y: auto; }
+
+/* Ticket */
+.ticket-key { font-size: 16px; font-weight: 800; color: #0052cc; margin-bottom: 4px; }
+.ticket-key a { color: inherit; text-decoration: none; }
+.ticket-key a:hover { text-decoration: underline; }
+.open-btn {
+  display: inline-block; margin: 4px 0 8px; padding: 4px 10px;
+  background: #0052cc; color: #fff; border: none;
+  border-radius: 5px; font-size: 11px; font-weight: 700;
+  cursor: pointer; text-decoration: none;
+}
+.open-btn:hover { background: #0043a8; }
+.ticket-summary { font-size: 13px; font-weight: 600; line-height: 1.4; margin-bottom: 6px; }
+.ticket-status {
+  display: inline-block; padding: 2px 9px; border-radius: 11px;
+  font-size: 10.5px; font-weight: 700; color: #fff;
+  text-transform: uppercase; margin-bottom: 8px;
+}
+.meta-grid { display: flex; flex-direction: column; margin-bottom: 6px; }
+.meta-row { display: flex; gap: 6px; padding: 3px 0; font-size: 12px; border-bottom: 1px solid #f0f0f0; }
+.meta-row:last-child { border: none; }
+.meta-label { font-weight: 600; color: #5e6c84; min-width: 90px; font-size: 11.5px; flex-shrink: 0; }
+.meta-value { color: #172b4d; word-break: break-word; }
+.meta-value a { color: #0052cc; text-decoration: none; }
+.sp-badge { background: #e3f2fd; color: #1565c0; border-radius: 10px; padding: 1px 8px; font-weight: 700; font-size: 11px; }
+.sprint-badge { background: #e8f5e9; color: #2e7d32; border-radius: 10px; padding: 1px 8px; font-weight: 600; font-size: 11px; }
+.section-divider { border: none; border-top: 2px solid #f0f0f0; margin: 8px 0; }
+.section-title { font-size: 12px; font-weight: 700; color: #172b4d; margin: 8px 0 4px; }
+
+/* Description */
+.desc-text { font-size: 11.5px; color: #333; line-height: 1.5; white-space: pre-wrap; word-break: break-word; max-height: 100px; overflow: hidden; }
+.desc-text.expanded { max-height: none; }
+.desc-more { display: inline-block; margin-top: 3px; font-size: 11px; color: #0052cc; cursor: pointer; background: none; border: none; padding: 0; }
+
+/* Comments */
+.comment-item { border: 1px solid #e8eaed; border-radius: 6px; padding: 7px 9px; margin-bottom: 6px; background: #fafafa; }
+.comment-author { font-size: 11px; font-weight: 700; color: #333; }
+.comment-date { font-size: 10px; color: #999; margin-left: 6px; }
+.comment-body { font-size: 11.5px; color: #444; line-height: 1.4; margin-top: 4px; white-space: pre-wrap; word-break: break-word; max-height: 62px; overflow: hidden; }
+.comment-body.expanded { max-height: 300px !important; overflow-y: auto !important; overflow-x: hidden !important; padding-right: 4px; border-left: 2px solid #e0e4f0; padding-left: 6px; background: #f8f9ff; }
+.comment-more { display: inline-block; margin-top: 3px; font-size: 10.5px; color: #0052cc; cursor: pointer; font-weight: 600; }
+
+/* Error / loading */
+.error-box { background: #fff3f3; border: 1px solid #ffcdd2; border-radius: 6px; padding: 10px; color: #b71c1c; font-size: 11.5px; white-space: pre-wrap; word-break: break-word; }
+.loading { text-align: center; padding: 20px; color: #555; font-size: 12px; }
+.source-note { font-size: 10px; color: #bbb; text-align: right; margin-top: 6px; }
+</style>
+</head>
+<body>
+<div id="header">
+  <span id="header-icon">🎫</span>
+  <span id="header-title">Jira Sidebar</span>
+  <span id="header-version">v26</span>
+</div>
+<div id="status-bar" class="st-idle">
+  <span id="status-dot"></span>
+  <span id="status-text">Initializing…</span>
+</div>
+<div id="input-row">
+  <input id="key-input" type="text" placeholder="e.g. UIAM-1234" maxlength="20"
+         autocomplete="off" spellcheck="false" />
+  <button id="go-btn">Show</button>
+</div>
+<div id="result"></div>
+<script src="taskpane.js"></script>
+</body>
+</html>
